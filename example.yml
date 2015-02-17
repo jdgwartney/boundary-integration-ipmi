@@ -1,0 +1,111 @@
+server:
+  minThreads: 1
+  applicationConnectors:
+    - type: http
+      acceptorThreads: 1
+      selectorThreads: 1
+client:
+  minThreads: 4
+  maxThreads: 4
+  timeout: 10s
+  connectionTimeout: 10s
+  retries: 3
+  gzipEnabledForRequests: false
+meterManagerClient:
+  apiKey: SET_API_KEY_HERE
+  baseUri: https://api.boundary.com/
+metricsClient:
+  baseUri: https://metrics-api.boundary.com/
+# Logging settings.
+logging:
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
+  # Logger-specific levels.
+  loggers:
+    # Overrides the level of com.example.dw.Thing and sets it to DEBUG.
+    #"org.apache.http.wire": DEBUG
+    com.boundary: TRACE
+orgId: <org id>
+metricsApiKey: <api key>
+pollFrequency: 3s
+monitoredEntities:
+  - host: 192.168.133.10
+    username: admin
+    password: admin
+    sensors:
+      - metricName: Power Consumption
+        ipmiSensorId: 94
+      - metricName: Voltage 3.3v
+        ipmiSensorId: 2
+      - metricName: Voltage 5v
+        ipmiSensorId: 3
+      - metricName: Voltage 12v
+        ipmiSensorId: 4
+      - metricName: CPU Temperature
+        ipmiSensorId: 15
+      - metricName: Server Temperature
+        ipmiSensorId: 10
+  - host: 192.168.133.11
+    username: admin
+    password: admin
+    sensors:
+    - metricName: Power Consumption
+      ipmiSensorId: 94
+    - metricName: Voltage 3.3v
+      ipmiSensorId: 2
+    - metricName: Voltage 5v
+      ipmiSensorId: 3
+    - metricName: Voltage 12v
+      ipmiSensorId: 4
+    - metricName: CPU Temperature
+      ipmiSensorId: 15
+    - metricName: Server Temperature
+      ipmiSensorId: 10
+  - host: 192.168.133.12
+    username: admin
+    password: admin
+    sensors:
+    - metricName: Power Consumption
+      ipmiSensorId: 94
+    - metricName: Voltage 3.3v
+      ipmiSensorId: 2
+    - metricName: Voltage 5v
+      ipmiSensorId: 3
+    - metricName: Voltage 12v
+      ipmiSensorId: 4
+    - metricName: CPU Temperature
+      ipmiSensorId: 15
+    - metricName: Server Temperature
+      ipmiSensorId: 10
+  - host: 192.168.133.13
+    username: admin
+    password: admin
+    sensors:
+    - metricName: Power Consumption
+      ipmiSensorId: 94
+    - metricName: Voltage 3.3v
+      ipmiSensorId: 2
+    - metricName: Voltage 5v
+      ipmiSensorId: 3
+    - metricName: Voltage 12v
+      ipmiSensorId: 4
+    - metricName: CPU Temperature
+      ipmiSensorId: 15
+    - metricName: Server Temperature
+      ipmiSensorId: 10
+  - host: 192.168.133.14
+    username: admin
+    password: admin
+    sensors:
+    - metricName: Power Consumption
+      ipmiSensorId: 94
+    - metricName: Voltage 3.3v
+      ipmiSensorId: 2
+    - metricName: Voltage 5v
+      ipmiSensorId: 3
+    - metricName: Voltage 12v
+      ipmiSensorId: 4
+    - metricName: CPU Temperature
+      ipmiSensorId: 15
+    - metricName: Server Temperature
+      ipmiSensorId: 10

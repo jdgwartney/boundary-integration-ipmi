@@ -61,7 +61,6 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
 
     private final MetricsClient metricsClient;
     private final MonitoredEntity entity;
-    private final String metricAuthentication;
     private final IpmiConnector connector;
     private final ConnectionHandle handle;
 
@@ -70,9 +69,8 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
 
     private final Timer metricsFetchTimer = new Timer();
 
-    public IPMIMetricsPoller(MonitoredEntity entity, String metricAuthentication, MetricsClient metricClient, IpmiConnector ipmiConnector) throws Exception {
+    public IPMIMetricsPoller(MonitoredEntity entity, MetricsClient metricClient, IpmiConnector ipmiConnector) throws Exception {
         this.entity = entity;
-        this.metricAuthentication = metricAuthentication;
         this.metricsClient = metricClient;
         this.connector = ipmiConnector;
 
@@ -174,7 +172,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
                     // Parse sensor reading using information retrieved
                     // from sensor record. See
                     // FullSensorRecord#calcFormula for details.
-                    measurements.put(m.getMetricName(), data2.getSensorReading(record));
+                    measurements.put(m.getName(), data2.getSensorReading(record));
                     String value = data2.getSensorReading(record) + " " + record.getSensorBaseUnit().toString()
                             + (record.getRateUnit() != RateUnit.None ? " per " + record.getRateUnit() : "");
                     LOG.info("{} ({}/{}) {} = {}", entity.getAddress().getHostAddress(), record.getId(), sid, record.getName(), value);
@@ -188,7 +186,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
             }
         }
         timerContext.stop();
-        metricsClient.addMeasurements(metricAuthentication, entity.getMeterId(), measurements, Optional.<DateTime>absent());
+        metricsClient.addMeasurements(entity.getMeterId(), measurements, Optional.<DateTime>absent());
     }
 
     private static ConnectionHandle startSession(IpmiConnector connector, InetAddress address, String username,

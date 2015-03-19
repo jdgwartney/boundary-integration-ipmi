@@ -22,12 +22,18 @@ public class IPMIPollerConfiguration extends Configuration {
     static class MetricClientConfiguration {
         @NotNull
         @JsonProperty
-        private URI baseUri = URI.create("https://metrics-api.boundary.com");
+        private URI baseUri;
 
-        public URI getBaseUri() { return baseUri; }
+        @NotNull
+        @JsonProperty
+        private String apiUser;
+
+        @NotNull
+        @JsonProperty
+        private String apiToken;
 
         public MetricsClient build(Client httpClient) {
-            return new MetricsClient(httpClient, getBaseUri());
+            return new MetricsClient(httpClient, baseUri, apiUser, apiToken);
         }
     }
 
@@ -64,21 +70,4 @@ public class IPMIPollerConfiguration extends Configuration {
     public Duration getPollFrequency() {
         return pollFrequency;
     }
-
-    @JsonProperty
-    @NotEmpty
-    private String orgId;
-
-    public String getOrgId() {
-        return orgId;
-    }
-
-    @JsonProperty
-    @NotEmpty
-    private String metricsApiKey;
-
-    public String getMetricsApiKey() {
-        return metricsApiKey;
-    }
-
 }

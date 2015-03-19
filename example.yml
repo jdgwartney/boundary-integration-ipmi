@@ -7,12 +7,14 @@ server:
 client:
   minThreads: 4
   maxThreads: 4
-  timeout: 10s
-  connectionTimeout: 10s
+  timeout: 20s
+  connectionTimeout: 20s
   retries: 3
   gzipEnabledForRequests: false
 metricsClient:
-  baseUri: https://metrics-api.boundary.com/
+  baseUri: https://premium-api.boundary.com/
+  apiUser: <email>
+  apiToken: <token>
 # Logging settings.
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
@@ -22,8 +24,6 @@ logging:
     # Overrides the level of com.example.dw.Thing and sets it to DEBUG.
     #"org.apache.http.wire": DEBUG
     com.boundary: TRACE
-orgId: <org id>
-metricsApiKey: <api key>
 pollFrequency: 3s
 monitoredEntities:
   - host: 10.10.10.10
@@ -32,4 +32,11 @@ monitoredEntities:
     password: admin
     sensors:
       - metricName: CPU Fan 1
+        shortName: CPUFan1
         ipmiSensorId: 49
+      - metricName: CPU Fan 2
+        shortName: CPUFan2
+        description: The second CPU fan
+        ipmiSensorId: 50
+        aggregate: sum
+        unit: bytecount

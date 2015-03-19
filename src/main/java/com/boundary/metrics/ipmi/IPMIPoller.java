@@ -53,22 +53,17 @@ public class IPMIPoller extends Application<IPMIPollerConfiguration> {
         /**
          * Create metrics
          */
-        final String authentication = configuration.getMetricsApiKey();
-        Map<String, MonitoredMetric.MetricUnit> metrics = Maps.newHashMap();
         for (MonitoredEntity e : configuration.getMonitoredEntities()) {
             for (MonitoredMetric m : e.getSensors()) {
-                metrics.put(m.getMetricDisplayName(), m.getUnit());
+                metricsClient.createMetric(m, (int) configuration.getPollFrequency().toSeconds()*1000);
             }
-        }
-        for (Map.Entry<String, MonitoredMetric.MetricUnit> m : metrics.entrySet()) {
-            metricsClient.createMetric(authentication, m.getKey(), m.getValue().name());
         }
 
         /**
          * Start pollers for each configured entity
          */
         for (MonitoredEntity e : configuration.getMonitoredEntities()) {
-            IPMIMetricsPoller poller = new IPMIMetricsPoller(e, authentication, metricsClient, connector);
+            IPMIMetricsPoller poller = new IPMIMetricsPoller(e, metricsClient, connector);
             environment.metrics().registerAll(poller);
             scheduler.scheduleAtFixedRate(poller, 1, configuration.getPollFrequency().toSeconds(), TimeUnit.SECONDS);
         }

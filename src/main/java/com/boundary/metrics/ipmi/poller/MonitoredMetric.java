@@ -10,6 +10,9 @@ import javax.validation.constraints.NotNull;
 
 public class MonitoredMetric {
 
+    public enum MetricUnit { percent, number, bytecount, duration; }
+    public enum Aggregate { avg, sum, min, max; }
+
     @JsonProperty
     @NotEmpty
     private String metricName;
@@ -23,23 +26,20 @@ public class MonitoredMetric {
     @NotNull
     private MetricUnit unit = MetricUnit.number;
 
-    public String getMetricDisplayName() {
-        return metricName;
-    }
+    @JsonProperty
+    @NotNull
+    private Aggregate aggregate = Aggregate.avg;
 
-    public String getMetricName() {
-        return MetricUtils.normalizeMetricName(metricName);
-    }
+    @JsonProperty
+    private String shortName;
+    @JsonProperty
+    private String description;
 
-    public int getIpmiSensorId() {
-        return ipmiSensorId;
-    }
-
-    public MetricUnit getUnit() {
-        return unit;
-    }
-
-    public enum MetricUnit {
-        percent, number, bytecount, duration;
-    }
+    public String getName() { return MetricUtils.normalizeMetricName(metricName); }
+    public String getDescription() { return description != null ? description : metricName; }
+    public String getDisplayName() { return metricName; }
+    public String getDisplayNameShort() { return shortName != null ? shortName : metricName; }
+    public MetricUnit getUnit() { return unit; }
+    public Aggregate getDefaultAggregate() { return aggregate; }
+    public int getIpmiSensorId() { return ipmiSensorId; }
 }

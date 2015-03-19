@@ -131,7 +131,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
                     int recordReadingId = TypeConverter.byteToInt(fsr.getSensorNumber());
                     if (recordReadingId >= 0) {
                         sensors.put(recordReadingId, fsr);
-                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", entity.getAddress().getHostAddress(), fsr.getName(), fsr.getId(), fsr.getSensorBaseUnit().toString());
+                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", entity.getAddress().getHostAddress(), fsr.getName(), recordReadingId, fsr.getSensorBaseUnit().toString());
                     }
                 }
             } catch (IPMIException e) {

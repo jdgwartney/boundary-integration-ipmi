@@ -56,7 +56,7 @@ public class IPMIPoller extends Application<IPMIPollerConfiguration> {
         final String authentication = configuration.getMetricsApiKey();
         Map<String, MonitoredMetric.MetricUnit> metrics = Maps.newHashMap();
         for (MonitoredEntity e : configuration.getMonitoredEntities()) {
-            for (MonitoredMetric m : e.getSensors().values()) {
+            for (MonitoredMetric m : e.getSensors()) {
                 metrics.put(m.getMetricDisplayName(), m.getUnit());
             }
         }

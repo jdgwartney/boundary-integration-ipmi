@@ -128,10 +128,10 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
                 // associated with them (see IPMI specification for details).
                 if (record instanceof FullSensorRecord) {
                     FullSensorRecord fsr = (FullSensorRecord) record;
-                    int recordReadingId = TypeConverter.byteToInt(fsr.getSensorNumber());
-                    if (recordReadingId >= 0) {
-                        sensors.put(recordReadingId, fsr);
-                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", entity.getAddress().getHostAddress(), fsr.getName(), recordReadingId, fsr.getSensorBaseUnit().toString());
+                    int sid = TypeConverter.byteToInt(fsr.getSensorNumber());
+                    if (sid >= 0) {
+                        sensors.put(sid, fsr);
+                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", entity.getAddress().getHostAddress(), fsr.getName(), sid, fsr.getSensorBaseUnit().toString());
                     }
                 }
             } catch (IPMIException e) {
@@ -163,32 +163,27 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
     private void collectMeasurements() throws Exception {
         Timer.Context timerContext = metricsFetchTimer.time();
         Map<String, Number> measurements = Maps.newHashMap();
-        for (Map.Entry<Integer, FullSensorRecord> r : sensors.entrySet()) {
-            int recordReadingId = r.getKey();
-            FullSensorRecord record = r.getValue();
-            String value;
-            String name = record.getName();
-
-            // If our record has got a reading associated, we get request
-            // for it
-            try {
-                if (recordReadingId >= 0 && entity.getSensors().containsKey(record.getId())) {
+        for (MonitoredMetric m : entity.getSensors()) {
+            int sid = m.getIpmiSensorId();
+            FullSensorRecord record = sensors.get(sid);
+            if (record != null) {
+                try {
                     GetSensorReadingResponseData data2 = (GetSensorReadingResponseData) connector
                             .sendMessage(handle, new GetSensorReading(IpmiVersion.V20, handle.getCipherSuite(),
-                                    AuthenticationType.RMCPPlus, recordReadingId));
+                                    AuthenticationType.RMCPPlus, sid));
                     // Parse sensor reading using information retrieved
                     // from sensor record. See
                     // FullSensorRecord#calcFormula for details.
-                    measurements.put(entity.getSensors().get(record.getId()).getMetricName(), data2.getSensorReading(record));
-                    value = data2.getSensorReading(record) + " " + record.getSensorBaseUnit().toString()
+                    measurements.put(m.getMetricName(), data2.getSensorReading(record));
+                    String value = data2.getSensorReading(record) + " " + record.getSensorBaseUnit().toString()
                             + (record.getRateUnit() != RateUnit.None ? " per " + record.getRateUnit() : "");
-                    LOG.info("{} ({}/{}) {} = {}", entity.getAddress().getHostAddress(), record.getId(), recordReadingId, name, value);
-                }
-            } catch (IPMIException e) {
-                if (e.getCompletionCode() == CompletionCode.DataNotPresent) {
-                    e.printStackTrace();
-                } else {
-                    throw e;
+                    LOG.info("{} ({}/{}) {} = {}", entity.getAddress().getHostAddress(), record.getId(), sid, record.getName(), value);
+                } catch (IPMIException e) {
+                    if (e.getCompletionCode() == CompletionCode.DataNotPresent) {
+                        e.printStackTrace();
+                    } else {
+                        throw e;
+                    }
                 }
             }
         }

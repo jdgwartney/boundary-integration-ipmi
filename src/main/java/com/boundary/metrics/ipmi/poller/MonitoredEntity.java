@@ -2,12 +2,11 @@ package com.boundary.metrics.ipmi.poller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.Immutable;
 import java.net.InetAddress;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -17,22 +16,18 @@ public class MonitoredEntity {
     private final InetAddress address;
     private final String username;
     private final String password;
-    private final Map<Integer, MonitoredMetric> sensors;
+    private final List<MonitoredMetric> sensors;
     private final String meterId;
 
     public MonitoredEntity(@JsonProperty("host") InetAddress address,
                            @JsonProperty("meterId") String meterId,
                            @JsonProperty("username") String username,
                            @JsonProperty("password") String password,
-                           @JsonProperty("sensors") Collection<MonitoredMetric> sensors) {
+                           @JsonProperty("sensors") List<MonitoredMetric> sensors) {
         this.username = checkNotNull(username);
         this.password = checkNotNull(password);
         this.address = checkNotNull(address);
-        ImmutableMap.Builder<Integer, MonitoredMetric> sensorsBuilder = ImmutableMap.builder();
-        for (MonitoredMetric m : sensors) {
-            sensorsBuilder.put(m.getIpmiSensorId(), m);
-        }
-        this.sensors = sensorsBuilder.build();
+        this.sensors = sensors;
         this.meterId = meterId;
     }
 
@@ -48,7 +43,7 @@ public class MonitoredEntity {
         return password;
     }
 
-    public Map<Integer, MonitoredMetric> getSensors() {
+    public List<MonitoredMetric> getSensors() {
         return sensors;
     }
 

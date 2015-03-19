@@ -1,6 +1,5 @@
 package com.boundary.metrics.ipmi;
 
-import com.boundary.metrics.ipmi.client.meter.manager.MeterManagerClient;
 import com.boundary.metrics.ipmi.client.metrics.MetricsClient;
 import com.boundary.metrics.ipmi.poller.MonitoredEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,26 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 public class IPMIPollerConfiguration extends Configuration {
 
-    static class MeterManagerConfiguration {
-        @NotNull
-        @JsonProperty
-        private URI baseUri = URI.create("https://api.boundary.com");
-
-        @NotEmpty
-        @JsonProperty
-        private String apiKey;
-
-        public URI getBaseUri() { return baseUri; }
-
-        public String getApiKey() {
-            return apiKey;
-        }
-
-        public MeterManagerClient build(Client httpClient) {
-            return new MeterManagerClient(httpClient, getBaseUri(), getApiKey());
-        }
-    }
-
     static class MetricClientConfiguration {
         @NotNull
         @JsonProperty
@@ -58,15 +37,6 @@ public class IPMIPollerConfiguration extends Configuration {
     private JerseyClientConfiguration client = new JerseyClientConfiguration();
 
     public JerseyClientConfiguration getClient() { return client; }
-
-    @JsonProperty
-    @Valid
-    @NotNull
-    private MeterManagerConfiguration meterManagerClient = new MeterManagerConfiguration();
-
-    public MeterManagerConfiguration getMeterManagerClient() {
-        return meterManagerClient;
-    }
 
     @JsonProperty
     @Valid

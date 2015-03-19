@@ -52,11 +52,11 @@ public class MetricsClient {
         response.close();
     }
 
-    public void addMeasurements(String authentication, int sourceId, Map<String, Number> measurements, Optional<DateTime> optionalTimestamp) {
+    public void addMeasurements(String authentication, String sourceId, Map<String, Number> measurements, Optional<DateTime> optionalTimestamp) {
         List<List<Object>> payload = Lists.newArrayList();
         final long timestamp = optionalTimestamp.or(new DateTime()).getMillis();
         for (Map.Entry<String, Number> m : measurements.entrySet()) {
-            payload.add(ImmutableList.<Object>of(String.valueOf(sourceId), m.getKey(), m.getValue(), timestamp));
+            payload.add(ImmutableList.<Object>of(sourceId, m.getKey(), m.getValue(), timestamp));
         }
         asyncWebResource.path(PATH_JOINER.join("v1", "measurements"))
                 .header(HttpHeaders.AUTHORIZATION, "Basic " + new String(Base64.encode(authentication), Charsets.US_ASCII))

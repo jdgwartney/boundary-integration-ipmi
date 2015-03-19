@@ -18,10 +18,10 @@ public class MonitoredEntity {
     private final String username;
     private final String password;
     private final Map<Integer, MonitoredMetric> sensors;
-    private final Optional<String> meterId;
+    private final String meterId;
 
     public MonitoredEntity(@JsonProperty("host") InetAddress address,
-                           @JsonProperty("meterId") Optional<String> meterId,
+                           @JsonProperty("meterId") String meterId,
                            @JsonProperty("username") String username,
                            @JsonProperty("password") String password,
                            @JsonProperty("sensors") Collection<MonitoredMetric> sensors) {
@@ -52,7 +52,7 @@ public class MonitoredEntity {
         return sensors;
     }
 
-    public Optional<String> getMeterId() {
+    public String getMeterId() {
         return meterId;
     }
 }

@@ -61,7 +61,6 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
 
     private final MetricsClient metricsClient;
     private final MonitoredEntity entity;
-    private final int metricSourceId;
     private final String metricAuthentication;
     private final IpmiConnector connector;
     private final ConnectionHandle handle;
@@ -71,9 +70,8 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
 
     private final Timer metricsFetchTimer = new Timer();
 
-    public IPMIMetricsPoller(MonitoredEntity entity, int sourceId, String metricAuthentication, MetricsClient metricClient, IpmiConnector ipmiConnector) throws Exception {
+    public IPMIMetricsPoller(MonitoredEntity entity, String metricAuthentication, MetricsClient metricClient, IpmiConnector ipmiConnector) throws Exception {
         this.entity = entity;
-        this.metricSourceId = sourceId;
         this.metricAuthentication = metricAuthentication;
         this.metricsClient = metricClient;
         this.connector = ipmiConnector;
@@ -195,7 +193,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
             }
         }
         timerContext.stop();
-        metricsClient.addMeasurements(metricAuthentication, metricSourceId, measurements, Optional.<DateTime>absent());
+        metricsClient.addMeasurements(metricAuthentication, entity.getMeterId(), measurements, Optional.<DateTime>absent());
     }
 
     private static ConnectionHandle startSession(IpmiConnector connector, InetAddress address, String username,

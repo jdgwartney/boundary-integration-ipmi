@@ -1,6 +1,5 @@
 package com.boundary.metrics.ipmi;
 
-import com.boundary.metrics.ipmi.client.meter.manager.MeterManagerClient;
 import com.boundary.metrics.ipmi.client.meter.manager.MeterMetadata;
 import com.boundary.metrics.ipmi.client.metrics.MetricsClient;
 import com.boundary.metrics.ipmi.poller.IPMIMetricsPoller;
@@ -42,7 +41,6 @@ public class IPMIPoller extends Application<IPMIPollerConfiguration> {
         final Client httpClient = new JerseyClientBuilder(environment)
                 .using(configuration.getClient())
                 .build("http-client");
-        final MeterManagerClient meterManagerClient = configuration.getMeterManagerClient().build(httpClient);
         final MetricsClient metricsClient = configuration.getMetricsClient().build(httpClient);
         final ScheduledExecutorService scheduler = environment.lifecycle().scheduledExecutorService("ipmi-poller")
                 .threads(configuration.getMonitoredEntities().size() < Runtime.getRuntime().availableProcessors()
@@ -70,13 +68,7 @@ public class IPMIPoller extends Application<IPMIPollerConfiguration> {
          * Start pollers for each configured entity
          */
         for (MonitoredEntity e : configuration.getMonitoredEntities()) {
-            MeterMetadata meter;
-            if (e.getMeterId().isPresent()) {
-                meter = meterManagerClient.getMeterMetadataById(configuration.getOrgId(), e.getMeterId().get()).get();
-            } else {
-                meter = meterManagerClient.createOrGetMeterMetadata(configuration.getOrgId(), e.getAddress().getHostName());
-            }
-            IPMIMetricsPoller poller = new IPMIMetricsPoller(e, meter.getObservationDomainId(), authentication, metricsClient, connector);
+            IPMIMetricsPoller poller = new IPMIMetricsPoller(e, authentication, metricsClient, connector);
             environment.metrics().registerAll(poller);
             scheduler.scheduleAtFixedRate(poller, 1, configuration.getPollFrequency().toSeconds(), TimeUnit.SECONDS);
         }

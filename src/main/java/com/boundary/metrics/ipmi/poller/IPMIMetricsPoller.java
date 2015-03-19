@@ -38,14 +38,14 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
     /**
      * Size of the initial GetSdr message to get record header and size
      */
-    private static final int INITIAL_CHUNK_SIZE = 64;
+    private static final int INITIAL_CHUNK_SIZE = 8;
 
     /**
      * Chunk size depending on buffer size of the IPMI server. Bigger values will improve performance. If server is
      * returning "Cannot return number of requested data bytes." error during GetSdr command, CHUNK_SIZE should be
      * decreased.
      */
-    private static final int CHUNK_SIZE = 128;
+    private static final int CHUNK_SIZE = 256;
 
     /**
      * Size of SDR record header
@@ -258,7 +258,6 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
             // smaller parts.
             if (e.getCompletionCode() == CompletionCode.CannotRespond
                     || e.getCompletionCode() == CompletionCode.UnspecifiedError) {
-                System.out.println("Getting chunks");
                 // First we get the header of the record to find out its size.
                 GetSdrResponseData data = (GetSdrResponseData) connector.sendMessage(handle, new GetSdr(
                         IpmiVersion.V20, handle.getCipherSuite(), AuthenticationType.RMCPPlus, reservationId,
@@ -275,20 +274,22 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
                 // We get the rest of the record in chunks (watch out for
                 // exceeding the record size, since this will result in BMC's
                 // error.
+                int chunk_size = CHUNK_SIZE;
                 while (read < recSize) {
-                    int bytesToRead = CHUNK_SIZE;
+                    int bytesToRead = chunk_size;
                     if (recSize - read < bytesToRead) {
                         bytesToRead = recSize - read;
                     }
-                    GetSdrResponseData part = (GetSdrResponseData) connector.sendMessage(handle, new GetSdr(
-                            IpmiVersion.V20, handle.getCipherSuite(), AuthenticationType.RMCPPlus, reservationId,
-                            recordId.get(), read, bytesToRead));
-
-                    System.arraycopy(part.getSensorRecordData(), 0, result, read, bytesToRead);
-
-                    System.out.println("Received part");
-
-                    read += bytesToRead;
+                    try {
+                        GetSdrResponseData part = (GetSdrResponseData) connector.sendMessage(handle, new GetSdr(
+                                IpmiVersion.V20, handle.getCipherSuite(), AuthenticationType.RMCPPlus, reservationId,
+                                recordId.get(), read, bytesToRead));
+                        System.arraycopy(part.getSensorRecordData(), 0, result, read, bytesToRead);
+                        read += bytesToRead;
+                    } catch (IPMIException ee) {
+                        if (chunk_size <= 8) throw ee;
+                        chunk_size /= 2;
+                    }
                 }
 
                 // Finally we populate the sensor record with the gathered

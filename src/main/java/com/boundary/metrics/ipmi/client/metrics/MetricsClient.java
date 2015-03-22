@@ -32,24 +32,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class MetricsClient {
 
     private class UpdateMetric {
-        private MonitoredMetric metric;
+        private MonitoredMetric.Metric metric;
         private int frequency;
-        public UpdateMetric(MonitoredMetric m, int pollFrequency) {
+        public UpdateMetric(MonitoredMetric.Metric m, int pollFrequency) {
             metric = m;
             frequency = pollFrequency;
         }
         @JsonProperty
-        public String getName() { return metric.getName(); }
+        public String getName() { return metric.name; }
         @JsonProperty
-        public String getDescription() { return metric.getDescription(); }
+        public String getDescription() { return metric.description; }
         @JsonProperty
-        public String getDisplayName() { return metric.getDisplayName(); }
+        public String getDisplayName() { return metric.displayName; }
         @JsonProperty
-        public String getDisplayNameShort() { return metric.getDisplayNameShort(); }
+        public String getDisplayNameShort() { return metric.displayNameShort; }
         @JsonProperty
-        public MonitoredMetric.MetricUnit getUnit() { return metric.getUnit(); }
+        public String getUnit() { return metric.unit; }
         @JsonProperty
-        public MonitoredMetric.Aggregate getDefaultAggregate() { return metric.getDefaultAggregate(); }
+        public String getDefaultAggregate() { return metric.aggregate; }
         @JsonProperty
         public int getDefaultResolutionMS() { return frequency; }
         @JsonProperty
@@ -71,19 +71,19 @@ public class MetricsClient {
         this.auth = "Basic " + new String(Base64.encode(user + ":" + token), Charsets.US_ASCII);
     }
 
-    public void createMetric(MonitoredMetric metric, int pollFrequency) {
-        ClientResponse response = baseResource.path(PATH_JOINER.join("v1", "metrics", metric.getName()))
+    public void createMetric(MonitoredMetric.Metric metric, int pollFrequency) {
+        ClientResponse response = baseResource.path(PATH_JOINER.join("v1", "metrics", metric.name))
                 .header(HttpHeaders.AUTHORIZATION, auth)
                 .entity(new UpdateMetric(metric, pollFrequency), MediaType.APPLICATION_JSON_TYPE)
                 .put(ClientResponse.class);
         response.close();
     }
 
-    public void addMeasurements(String sourceId, Map<String, Number> measurements, Optional<DateTime> optionalTimestamp) {
+    public void addMeasurements(List<MonitoredMetric> metrics, Map<Integer, Number> measurements, Optional<DateTime> optionalTimestamp) {
         List<List<Object>> payload = Lists.newArrayList();
         final long timestamp = optionalTimestamp.or(new DateTime()).getMillis();
-        for (Map.Entry<String, Number> m : measurements.entrySet()) {
-            payload.add(ImmutableList.<Object>of(sourceId, m.getKey(), m.getValue(), timestamp));
+        for (MonitoredMetric m : metrics) {
+            payload.add(ImmutableList.<Object>of(m.source, m.metric.name, measurements.get(m.ipmiid), timestamp));
         }
         asyncWebResource.path(PATH_JOINER.join("v1", "measurements"))
                 .header(HttpHeaders.AUTHORIZATION, auth)

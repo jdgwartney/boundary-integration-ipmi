@@ -60,33 +60,35 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
     private static final int MAX_REPO_RECORD_ID = 65535;
 
     private final MetricsClient metricsClient;
-    private final MonitoredEntity entity;
+    private final List<MonitoredMetric> sensors;
+    private final String address;
     private final IpmiConnector connector;
     private final ConnectionHandle handle;
 
     private final AtomicBoolean polling = new AtomicBoolean(false);
-    private Map<Integer, FullSensorRecord> sensors;
+    private Map<Integer, FullSensorRecord> sensorRecs;
 
     private final Timer metricsFetchTimer = new Timer();
 
     public IPMIMetricsPoller(MonitoredEntity entity, MetricsClient metricClient, IpmiConnector ipmiConnector) throws Exception {
-        this.entity = entity;
-        this.metricsClient = metricClient;
-        this.connector = ipmiConnector;
+        sensors = entity.sensors;
+        address = entity.address.getHostAddress();
+        metricsClient = metricClient;
+        connector = ipmiConnector;
 
         // start the session to the remote host. We assume, that two-key
         // authentication isn't enabled, so BMC key is left null (see
         // #startSession for details).
-        handle = startSession(connector, entity.getAddress(),
-                entity.getUsername(), entity.getPassword(), "", PrivilegeLevel.User);
+        handle = startSession(connector, entity.address,
+                entity.username, entity.password, "", PrivilegeLevel.User);
     }
 
     @Override
     public void run() {
         if (polling.compareAndSet(false, true)) {
             try {
-                if (sensors == null) {
-                    sensors = getStaticSensorRecords();
+                if (sensorRecs == null) {
+                    sensorRecs = getStaticSensorRecords();
                 }
                 collectMeasurements();
             } catch (Exception e) {
@@ -100,7 +102,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
     }
 
     private Map<Integer, FullSensorRecord> getStaticSensorRecords() throws Exception {
-        Map<Integer, FullSensorRecord> sensors = Maps.newHashMap();
+        Map<Integer, FullSensorRecord> sensorRecs = Maps.newHashMap();
 
         // Id 0 indicates first record in SDR. Next IDs can be retrieved from
         // records - they are organized in a list and there is no BMC command to
@@ -128,8 +130,8 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
                     FullSensorRecord fsr = (FullSensorRecord) record;
                     int sid = TypeConverter.byteToInt(fsr.getSensorNumber());
                     if (sid >= 0) {
-                        sensors.put(sid, fsr);
-                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", entity.getAddress().getHostAddress(), fsr.getName(), sid, fsr.getSensorBaseUnit().toString());
+                        sensorRecs.put(sid, fsr);
+                        LOG.info("{} Found sensor {} (ID: {}, Rate: {})", address, fsr.getName(), sid, fsr.getSensorBaseUnit().toString());
                     }
                 }
             } catch (IPMIException e) {
@@ -155,27 +157,26 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
             }
         }
 
-        return sensors;
+        return sensorRecs;
     }
 
     private void collectMeasurements() throws Exception {
         Timer.Context timerContext = metricsFetchTimer.time();
-        Map<String, Number> measurements = Maps.newHashMap();
-        for (MonitoredMetric m : entity.getSensors()) {
-            int sid = m.getIpmiSensorId();
-            FullSensorRecord record = sensors.get(sid);
+        Map<Integer, Number> measurements = Maps.newHashMap();
+        for (MonitoredMetric m : sensors) {
+            FullSensorRecord record = sensorRecs.get(m.ipmiid);
             if (record != null) {
                 try {
                     GetSensorReadingResponseData data2 = (GetSensorReadingResponseData) connector
                             .sendMessage(handle, new GetSensorReading(IpmiVersion.V20, handle.getCipherSuite(),
-                                    AuthenticationType.RMCPPlus, sid));
+                                    AuthenticationType.RMCPPlus, m.ipmiid));
                     // Parse sensor reading using information retrieved
                     // from sensor record. See
                     // FullSensorRecord#calcFormula for details.
-                    measurements.put(m.getName(), data2.getSensorReading(record));
+                    measurements.put(m.ipmiid, data2.getSensorReading(record));
                     String value = data2.getSensorReading(record) + " " + record.getSensorBaseUnit().toString()
                             + (record.getRateUnit() != RateUnit.None ? " per " + record.getRateUnit() : "");
-                    LOG.info("{} ({}/{}) {} = {}", entity.getAddress().getHostAddress(), record.getId(), sid, record.getName(), value);
+                    LOG.info("{} ({}/{}) {} = {}", address, record.getId(), m.ipmiid, record.getName(), value);
                 } catch (IPMIException e) {
                     if (e.getCompletionCode() == CompletionCode.DataNotPresent) {
                         e.printStackTrace();
@@ -186,7 +187,7 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
             }
         }
         timerContext.stop();
-        metricsClient.addMeasurements(entity.getMeterId(), measurements, Optional.<DateTime>absent());
+        metricsClient.addMeasurements(sensors, measurements, Optional.<DateTime>absent());
     }
 
     private static ConnectionHandle startSession(IpmiConnector connector, InetAddress address, String username,
@@ -325,6 +326,6 @@ public class IPMIMetricsPoller implements Runnable, MetricSet {
 
     @Override
     public Map<String, Metric> getMetrics() {
-        return ImmutableMap.of(entity.getAddress().getHostAddress() + "-poll-timer", (Metric)metricsFetchTimer);
+        return ImmutableMap.of(address + "-poll-timer", (Metric)metricsFetchTimer);
     }
 }

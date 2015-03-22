@@ -13,8 +13,8 @@ client:
   gzipEnabledForRequests: false
 metricsClient:
   baseUri: https://premium-api.boundary.com/
-  apiUser: <email>
-  apiToken: <token>
+  apiUser:
+  apiToken:
 # Logging settings.
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
@@ -27,16 +27,54 @@ logging:
 pollFrequency: 3s
 monitoredEntities:
   - host: 10.10.10.10
-    meterId: subtle
     username: admin
     password: admin
+    source: testserver
     sensors:
-      - metricName: CPU Fan 1
-        shortName: CPUFan1
-        ipmiSensorId: 49
-      - metricName: CPU Fan 2
-        shortName: CPUFan2
-        description: The second CPU fan
-        ipmiSensorId: 50
-        aggregate: sum
-        unit: bytecount
+# either define metrics and reuse them with different sources
+      - sensorId: 49
+        metric: IPMI_CPU_FAN
+        description: CPU fan speed (rpm)
+        displayName: CPU Fan Speed
+        displayNameShort: CPU Fan
+        unit: number
+        defaultAggregate: avg
+        source: testserver_CpuFan1
+      - sensorId: 50
+        metric: IPMI_CPU_FAN
+        # reuse metric already defined above
+        source: testserver_CpuFan2
+      - sensorId: 51
+        metric: IPMI_CPU_FAN
+        source: testserver_CpuFan3
+      - sensorId: 52
+        metric: IPMI_CPU_FAN
+        source: testserver_CpuFan4
+      - sensorId: 134
+        metric: IPMI_CPU_DMN_TEMP
+        description: CPU dmn temperature
+        displayName: CPU Dmn Temp
+        displayNameShort: CPU Temp
+        unit: number
+        defaultAggregate: avg
+        source: testserver_Cpu0Dmn0Temp
+        # source taken from entity (above)
+      - sensorId: 140
+        metric: IPMI_CPU_DMN_TEMP
+        source: testserver_Cpu0Dmn1Temp
+# or define a metric per sensor and use the source from entity metadata
+#      - sensorId: 134
+#        metric: IPMI_CPU0_DMN0_TEMP
+#        description: CPU0 dmn0 temperature
+#        displayName: CPU0 Dmn0 Temp
+#        displayNameShort: CPU0-0 Temp
+#        unit: number
+#        defaultAggregate: avg
+#        # source taken from entity (above)
+#      - sensorId: 140
+#        metric: IPMI_CPU0_DMN1_TEMP
+#        description: CPU0 dmn1 temperature
+#        displayName: CPU0 Dmn1 Temp
+#        displayNameShort: CPU0-1 Temp
+#        unit: number
+#        defaultAggregate: avg

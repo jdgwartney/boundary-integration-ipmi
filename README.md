@@ -4,7 +4,7 @@
 1. Download Verax IPMI library from http://www.veraxsystems.com/en/downloads/ipmilibdownload
 2. Add to local repository (beware GPL)
 ```
-mvn install:install-file -Dfile=vxIPMI.jar -DgroupId=verax -DartifactId=commons-vxipmi-library -Dversion=1.0.15 -Dpackaging=jar
+mvn install:install-file -Dfile=vxIPMI.jar -DgroupId=verax -DartifactId=commons-vxipmi-library -Dversion=1.0.17 -Dpackaging=jar
 ```
 
 ## Configuration

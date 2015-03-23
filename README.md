@@ -8,7 +8,7 @@ mvn install:install-file -Dfile=vxIPMI.jar -DgroupId=verax -DartifactId=commons-
 ```
 
 ## Configuration
-1. Modify example.yml accordingly, at the very least add your API key to the meterManagerClient.apiKey
+1. Modify example.yml accordingly, at the very least add your API key
 
 ## Running
 ```

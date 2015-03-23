@@ -7,15 +7,14 @@ server:
 client:
   minThreads: 4
   maxThreads: 4
-  timeout: 10s
-  connectionTimeout: 10s
+  timeout: 20s
+  connectionTimeout: 20s
   retries: 3
   gzipEnabledForRequests: false
-meterManagerClient:
-  apiKey: SET_API_KEY_HERE
-  baseUri: https://api.boundary.com/
 metricsClient:
-  baseUri: https://metrics-api.boundary.com/
+  baseUri: https://premium-api.boundary.com/
+  apiUser:
+  apiToken:
 # Logging settings.
 logging:
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
@@ -25,87 +24,57 @@ logging:
     # Overrides the level of com.example.dw.Thing and sets it to DEBUG.
     #"org.apache.http.wire": DEBUG
     com.boundary: TRACE
-orgId: <org id>
-metricsApiKey: <api key>
 pollFrequency: 3s
 monitoredEntities:
-  - host: 192.168.133.10
+  - host: 10.10.10.10
     username: admin
     password: admin
+    source: testserver
     sensors:
-      - metricName: Power Consumption
-        ipmiSensorId: 94
-      - metricName: Voltage 3.3v
-        ipmiSensorId: 2
-      - metricName: Voltage 5v
-        ipmiSensorId: 3
-      - metricName: Voltage 12v
-        ipmiSensorId: 4
-      - metricName: CPU Temperature
-        ipmiSensorId: 15
-      - metricName: Server Temperature
-        ipmiSensorId: 10
-  - host: 192.168.133.11
-    username: admin
-    password: admin
-    sensors:
-    - metricName: Power Consumption
-      ipmiSensorId: 94
-    - metricName: Voltage 3.3v
-      ipmiSensorId: 2
-    - metricName: Voltage 5v
-      ipmiSensorId: 3
-    - metricName: Voltage 12v
-      ipmiSensorId: 4
-    - metricName: CPU Temperature
-      ipmiSensorId: 15
-    - metricName: Server Temperature
-      ipmiSensorId: 10
-  - host: 192.168.133.12
-    username: admin
-    password: admin
-    sensors:
-    - metricName: Power Consumption
-      ipmiSensorId: 94
-    - metricName: Voltage 3.3v
-      ipmiSensorId: 2
-    - metricName: Voltage 5v
-      ipmiSensorId: 3
-    - metricName: Voltage 12v
-      ipmiSensorId: 4
-    - metricName: CPU Temperature
-      ipmiSensorId: 15
-    - metricName: Server Temperature
-      ipmiSensorId: 10
-  - host: 192.168.133.13
-    username: admin
-    password: admin
-    sensors:
-    - metricName: Power Consumption
-      ipmiSensorId: 94
-    - metricName: Voltage 3.3v
-      ipmiSensorId: 2
-    - metricName: Voltage 5v
-      ipmiSensorId: 3
-    - metricName: Voltage 12v
-      ipmiSensorId: 4
-    - metricName: CPU Temperature
-      ipmiSensorId: 15
-    - metricName: Server Temperature
-      ipmiSensorId: 10
-  - host: 192.168.133.14
-    username: admin
-    password: admin
-    sensors:
-    - metricName: Power Consumption
-      ipmiSensorId: 94
-    - metricName: Voltage 3.3v
-      ipmiSensorId: 2
-    - metricName: Voltage 5v
-      ipmiSensorId: 3
-    - metricName: Voltage 12v
-      ipmiSensorId: 4
-    - metricName: CPU Temperature
-      ipmiSensorId: 15
-    - metricName: Server Temperature
-      ipmiSensorId: 10
+# either define metrics and reuse them with different sources
+      - sensorId: 49
+        metric: IPMI_CPU_FAN
+        description: CPU fan speed (rpm)
+        displayName: CPU Fan Speed
+        displayNameShort: CPU Fan
+        unit: number
+        defaultAggregate: avg
+        source: testserver_CpuFan1
+      - sensorId: 50
+        metric: IPMI_CPU_FAN
+        # reuse metric already defined above
+        source: testserver_CpuFan2
+      - sensorId: 51
+        metric: IPMI_CPU_FAN
+        source: testserver_CpuFan3
+      - sensorId: 52
+        metric: IPMI_CPU_FAN
+        source: testserver_CpuFan4
+      - sensorId: 134
+        metric: IPMI_CPU_DMN_TEMP
+        description: CPU dmn temperature
+        displayName: CPU Dmn Temp
+        displayNameShort: CPU Temp
+        unit: number
+        defaultAggregate: avg
+        source: testserver_Cpu0Dmn0Temp
+        # source taken from entity (above)
+      - sensorId: 140
+        metric: IPMI_CPU_DMN_TEMP
+        source: testserver_Cpu0Dmn1Temp
+# or define a metric per sensor and use the source from entity metadata
+#      - sensorId: 134
+#        metric: IPMI_CPU0_DMN0_TEMP
+#        description: CPU0 dmn0 temperature
+#        displayName: CPU0 Dmn0 Temp
+#        displayNameShort: CPU0-0 Temp
+#        unit: number
+#        defaultAggregate: avg
+#        # source taken from entity (above)
+#      - sensorId: 140
+#        metric: IPMI_CPU0_DMN1_TEMP
+#        description: CPU0 dmn1 temperature
+#        displayName: CPU0 Dmn1 Temp
+#        displayNameShort: CPU0-1 Temp
+#        unit: number
+#        defaultAggregate: avg
